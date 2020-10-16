@@ -1,10 +1,48 @@
 #!/usr/bin/env python
 
-import ROOT
+#import ROOT
 import csv
 import numpy as np
 from matplotlib import pyplot as plt
 import math
+
+
+def fit2polyGradient(dataArray, pivot, outputPlot=""):
+
+  dataPointsNum = len(dataArray)
+
+  if pivot == "middle":
+    x_pixels = range(-math.floor(dataPointsNum/2),math.ceil(dataPointsNum/2))
+  elif pivot == "bottom":
+    x_pixels = range(0,dataPointsNum)
+  elif pivot == "top":
+    x_pixels = range(-dataPointsNum,0)
+  else:
+    print("ERR invalid input")
+    return -1, -1
+
+  coefs, cov = np.polyfit(x_pixels, dataArray, 2,cov = True)
+  errors = np.sqrt(np.diag(cov))
+
+  fit_nominal = coefs[2] + coefs[1]*x_pixels + coefs[0]*x_pixels*x_pixels
+  fit_up = coefs[2]+3*errors[2] + (coefs[1]+3*errors[1])*x_pixels + (coefs[0]+3*errors[0])*x_pixels*x_pixels
+  fit_down = coefs[2]-3*errors[2] + (coefs[1]-3*errors[1])*x_pixels + (coefs[0]-3*errors[0])*x_pixels*x_pixels
+
+  plt.clf()
+  plt.plot(x_pixels, dataArray, "o", label = "data")
+  plt.plot(x_pixels, fit_nominal, label="fit_nominal")
+  plt.plot(x_pixels, fit_up, label = "fit_var_up (3 sigma)")
+  plt.plot(x_pixels, fit_down, label = "fit_var_down (3 sigma)")
+
+  plt.legend()
+
+  if outputPlot != "":
+    plt.savefig(outputPlot)
+
+  gradient = coefs[1]
+  gradientError = errors[1]
+
+  return gradient, gradientError
 
 
 #fetch the CSV file
@@ -20,65 +58,73 @@ line = np.mean(image, axis=0)
 first_derivative = np.gradient(line)
 second_derivative = np.gradient(first_derivative)
 
-plt.figure(figsize=(200,30))
-plt.plot(line, "o")
+#plt.plot(line, "o")
 #plt.plot(first_derivative, "o")
 #plt.plot(second_derivative)
 
-bottom_interface = np.argmax(first_derivative[0:int(len(first_derivative)/2)])
-top_interface = int(len(first_derivative)/2) + np.argmax(first_derivative[int(len(first_derivative)/2):])
+gap = 5
+bottomInterface = np.argmax(first_derivative[0:int(len(first_derivative)/2)])
+topInterface = int(len(first_derivative)/2) + np.argmax(first_derivative[int(len(first_derivative)/2):])
 
-print(bottom_interface)
-print(top_interface)
+print(bottomInterface)
+print(topInterface)
 
-plt.axvline(x=bottom_interface,linewidth=1, color='r')
-plt.axvline(x=top_interface,linewidth=1, color='r')
+sampleLowerBoundary = bottomInterface + gap
+sampleUpperBoundary = topInterface - gap
 
-plt.axvline(x=(bottom_interface+10),linewidth=1, color='yellow')
-plt.axvline(x=(bottom_interface-10),linewidth=1, color='yellow')
+topTowerLowerBoundary = topInterface + gap
+topTowerUpperBoundary = len(line) - 50
 
-plt.axvline(x=(top_interface+10),linewidth=1, color='yellow')
-plt.axvline(x=(top_interface-10),linewidth=1, color='yellow')
-
-plt.savefig("plot.png")
+bottomTowerLowerBoundary = 50
+bottomTowerUpperBoundary = bottomInterface - gap
 
 
-coefs_lower, cov_low = np.polyfit(range(0,80), line[40:120], 2,cov = True)
-error_lower = np.sqrt(np.diag(cov_low))
+gradientSample, gradientErrorSample = fit2polyGradient(line[sampleLowerBoundary:sampleUpperBoundary], "middle", "sampleFit.png")
+gradientTopTower, gradientErrorTopTower = fit2polyGradient(line[topTowerLowerBoundary:topTowerUpperBoundary], "bottom", "topTowerFit.png")
+gradientBottomTower, gradientErrorBottomTower = fit2polyGradient(line[bottomTowerLowerBoundary:bottomTowerUpperBoundary], "top","bottomTowerFit.png")
 
-coefs_sample, cov_sample = np.polyfit(range(0,40), line[135:175], 2,cov = True)
-error_sample = np.sqrt(np.diag(cov_sample))
+towerGradientDiscrepancy = abs(gradientTopTower - gradientBottomTower)/min(gradientTopTower,gradientBottomTower)
 
-coefs_upper, cov_upper = np.polyfit(range(0,80), line[180:260], 2,cov = True)
-error_upper = np.sqrt(np.diag(cov_upper))
+towerAverageGradient = (gradientTopTower+gradientBottomTower)/2
 
-print("lower \t {} +/- {}".format(coefs_lower[1],error_lower[1]))
-print("sample \t {} +/- {}".format(coefs_sample[1],error_sample[1]))
-print("upper \t {} +/- {}".format(coefs_upper[1],error_upper[1]))
+towerAverageGradientError = math.sqrt(gradientErrorTopTower**2 + gradientErrorBottomTower**2)
 
-kPb = 35.3
+heatConductivityPb = 35.3
 
-gradient_bottom =  coefs_lower[1]
+heatConductivity = heatConductivityPb * (towerAverageGradient/gradientSample)
 
-gradient_sample =  coefs_sample[1]
+heatConductivityError = heatConductivity * math.sqrt((towerAverageGradientError/towerAverageGradient)**2 + (gradientErrorTopTower/gradientTopTower)**2)
 
-gradient_top  = coefs_upper[1]
 
-gradient_tower_mean = (gradient_bottom+gradient_top)/2
+print("Sample")
+print("gradient: \t {} +/- {}".format(gradientSample,gradientErrorSample))
+print("Rel.eer: \t {}%".format(100*gradientErrorSample/gradientSample))
 
-kSample = kPb * (gradient_tower_mean/gradient_sample)
+print("______________________________________________________________________")
 
-print("gradient_bottom = {}".format(gradient_bottom))
-print("gradient_sample = {}".format(gradient_sample))
-print("gradient_top = {}".format(gradient_top))
+print("Lower Tower")
+print("gradient: \t {} +/- {}".format(gradientTopTower,gradientErrorTopTower))
+print("Rel.eer: \t {}%".format(100*gradientErrorTopTower/gradientTopTower))
 
-relative_error = math.sqrt((error_lower[1]/coefs_lower[1])**2 + (error_sample[1]/coefs_sample[1])**2)
+print("______________________________________________________________________")
 
-print(kSample)
+print("Upper Tower")
+print("gradient: \t {} +/- {}".format(gradientBottomTower,gradientErrorBottomTower))
+print("Rel.eer: \t {}%".format(100*gradientErrorBottomTower/gradientBottomTower))
 
-print("error {}%".format(relative_error*100))
+print("______________________________________________________________________")
+print("______________________________________________________________________")
 
-print(kSample*relative_error)
+print("Gradient discrepancy (top vs. tower): \t {}%".format(100*towerGradientDiscrepancy))
+
+print("______________________________________________________________________")
+
+print("Heat conductivity: \t {} +/- {}".format(heatConductivity,heatConductivityError))
+
+print("______________________________________________________________________")
+
+
+
 
 """
 c1 = ROOT.TCanvas("c1")
