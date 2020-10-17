@@ -5,6 +5,7 @@ import csv
 import numpy as np
 from matplotlib import pyplot as plt
 import math
+import sys
 
 
 def fit2polyGradient(dataArray, pivot, outputPlot=""):
@@ -25,8 +26,12 @@ def fit2polyGradient(dataArray, pivot, outputPlot=""):
   errors = np.sqrt(np.diag(cov))
 
   fit_nominal = coefs[2] + coefs[1]*x_pixels + coefs[0]*x_pixels*x_pixels
-  fit_up = coefs[2]+3*errors[2] + (coefs[1]+3*errors[1])*x_pixels + (coefs[0]+3*errors[0])*x_pixels*x_pixels
-  fit_down = coefs[2]-3*errors[2] + (coefs[1]-3*errors[1])*x_pixels + (coefs[0]-3*errors[0])*x_pixels*x_pixels
+  if pivot=="top":
+    fit_up = coefs[2]+3*errors[2] + (coefs[1]-3*errors[1])*x_pixels + (coefs[0]+3*errors[0])*x_pixels*x_pixels
+    fit_down = coefs[2]-3*errors[2] + (coefs[1]+3*errors[1])*x_pixels + (coefs[0]-3*errors[0])*x_pixels*x_pixels
+  else:
+    fit_up = coefs[2]+3*errors[2] + (coefs[1]+3*errors[1])*x_pixels + (coefs[0]+3*errors[0])*x_pixels*x_pixels
+    fit_down = coefs[2]-3*errors[2] + (coefs[1]-3*errors[1])*x_pixels + (coefs[0]-3*errors[0])*x_pixels*x_pixels
 
   plt.clf()
   plt.plot(x_pixels, dataArray, "o", label = "data")
@@ -47,7 +52,7 @@ def fit2polyGradient(dataArray, pivot, outputPlot=""):
 
 #fetch the CSV file
 imgList = []
-with open("A40M-000231_box.csv") as csvfile:
+with open(sys.argv[1]) as csvfile:
   reader = csv.reader(csvfile, quoting=csv.QUOTE_NONNUMERIC)
   for row in reader:
     imgList.append(row)
@@ -58,7 +63,7 @@ line = np.mean(image, axis=0)
 first_derivative = np.gradient(line)
 second_derivative = np.gradient(first_derivative)
 
-#plt.plot(line, "o")
+plt.plot(line, "o", markersize=1)
 #plt.plot(first_derivative, "o")
 #plt.plot(second_derivative)
 
@@ -66,8 +71,6 @@ gap = 5
 bottomInterface = np.argmax(first_derivative[0:int(len(first_derivative)/2)])
 topInterface = int(len(first_derivative)/2) + np.argmax(first_derivative[int(len(first_derivative)/2):])
 
-print(bottomInterface)
-print(topInterface)
 
 sampleLowerBoundary = bottomInterface + gap
 sampleUpperBoundary = topInterface - gap
@@ -78,6 +81,18 @@ topTowerUpperBoundary = len(line) - 50
 bottomTowerLowerBoundary = 50
 bottomTowerUpperBoundary = bottomInterface - gap
 
+plt.vlines(sampleLowerBoundary,10,32, colors = "r")
+plt.vlines(sampleUpperBoundary,10,32, colors = "r")
+plt.vlines(topTowerLowerBoundary,10,32, colors = "b")
+plt.vlines(topTowerUpperBoundary,10,32, colors = "b")
+plt.vlines(bottomTowerLowerBoundary,10,32, colors = "y")
+plt.vlines(bottomTowerUpperBoundary,10,32, colors = "y")
+plt.xlabel("Pixels")
+plt.ylabel("Teperature [C]")
+plt.title("Temperature profile")
+plt.axis([0,len(line),15,32])
+plt.savefig("wholeTemperatureProfile.png", dpi=1000)
+plt.clf()
 
 gradientSample, gradientErrorSample = fit2polyGradient(line[sampleLowerBoundary:sampleUpperBoundary], "middle", "sampleFit.png")
 gradientTopTower, gradientErrorTopTower = fit2polyGradient(line[topTowerLowerBoundary:topTowerUpperBoundary], "bottom", "topTowerFit.png")
@@ -94,6 +109,8 @@ heatConductivityPb = 35.3
 heatConductivity = heatConductivityPb * (towerAverageGradient/gradientSample)
 
 heatConductivityError = heatConductivity * math.sqrt((towerAverageGradientError/towerAverageGradient)**2 + (gradientErrorTopTower/gradientTopTower)**2)
+
+
 
 
 print("Sample")
@@ -120,5 +137,7 @@ print("Gradient discrepancy (top vs. tower): \t {}%".format(100*towerGradientDis
 print("______________________________________________________________________")
 
 print("Heat conductivity: \t {} +/- {}".format(heatConductivity,heatConductivityError))
+
+print("Relative error: \t {}%".format(100*heatConductivityError/heatConductivity))
 
 print("______________________________________________________________________")
