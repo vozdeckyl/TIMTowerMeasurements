@@ -115,24 +115,24 @@ heatConductivityError = heatConductivity * math.sqrt((towerAverageGradientError/
 
 print("Sample")
 print("gradient: \t {} +/- {}".format(gradientSample,gradientErrorSample))
-print("Rel.eer: \t {}%".format(100*gradientErrorSample/gradientSample))
+print("Relative error: \t {}%".format(100*gradientErrorSample/gradientSample))
 
 print("______________________________________________________________________")
 
 print("Lower Tower")
 print("gradient: \t {} +/- {}".format(gradientTopTower,gradientErrorTopTower))
-print("Rel.eer: \t {}%".format(100*gradientErrorTopTower/gradientTopTower))
+print("Relative error: \t {}%".format(100*gradientErrorTopTower/gradientTopTower))
 
 print("______________________________________________________________________")
 
 print("Upper Tower")
 print("gradient: \t {} +/- {}".format(gradientBottomTower,gradientErrorBottomTower))
-print("Rel.eer: \t {}%".format(100*gradientErrorBottomTower/gradientBottomTower))
+print("Relative error: \t {}%".format(100*gradientErrorBottomTower/gradientBottomTower))
 
 print("______________________________________________________________________")
 print("______________________________________________________________________")
 
-print("Gradient discrepancy (top vs. tower): \t {}%".format(100*towerGradientDiscrepancy))
+print("Gradient discrepancy (top vs. bottom tower): \t {}%".format(100*towerGradientDiscrepancy))
 
 print("______________________________________________________________________")
 
