@@ -102,7 +102,7 @@ towerGradientDiscrepancy = abs(gradientTopTower - gradientBottomTower)/min(gradi
 
 towerAverageGradient = (gradientTopTower+gradientBottomTower)/2
 
-towerAverageGradientError = math.sqrt(gradientErrorTopTower**2 + gradientErrorBottomTower**2)
+towerAverageGradientError = 0.5*math.sqrt(gradientErrorTopTower**2 + gradientErrorBottomTower**2)
 
 heatConductivityPb = 35.3
 
