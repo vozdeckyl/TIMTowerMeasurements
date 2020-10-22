@@ -5,10 +5,10 @@ Time, 19:00
 Sample ID, ABCD999
 Density [g/cm^3], 0.999
 Lens, normal
-Pressure [mV], 999.9
+Load Cell [mV], 999.9
 Humidity [%], 99.9
-Current [A], 0.19999
-Voltage [V], 99.9
+Heater Current [A], 0.19999
+Heater Voltage [V], 99.9
 Distance [m], 0.99
 Ambient temperature [C], 99
 Comments, any relevant information can be written here
