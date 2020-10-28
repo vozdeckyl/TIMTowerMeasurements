@@ -81,16 +81,19 @@ topTowerUpperBoundary = len(line) - 50
 bottomTowerLowerBoundary = 50
 bottomTowerUpperBoundary = bottomInterface - gap
 
-plt.vlines(sampleLowerBoundary,10,32, colors = "r")
-plt.vlines(sampleUpperBoundary,10,32, colors = "r")
-plt.vlines(topTowerLowerBoundary,10,32, colors = "b")
-plt.vlines(topTowerUpperBoundary,10,32, colors = "b")
-plt.vlines(bottomTowerLowerBoundary,10,32, colors = "y")
-plt.vlines(bottomTowerUpperBoundary,10,32, colors = "y")
+minTemperature = 15
+maxTemperature = 2 + np.max(line)
+
+plt.vlines(sampleLowerBoundary,minTemperature,maxTemperature, colors = "r")
+plt.vlines(sampleUpperBoundary,minTemperature,maxTemperature, colors = "r")
+plt.vlines(topTowerLowerBoundary,minTemperature,maxTemperature, colors = "b")
+plt.vlines(topTowerUpperBoundary,minTemperature,maxTemperature, colors = "b")
+plt.vlines(bottomTowerLowerBoundary,minTemperature,maxTemperature, colors = "y")
+plt.vlines(bottomTowerUpperBoundary,minTemperature,maxTemperature, colors = "y")
 plt.xlabel("Pixels")
 plt.ylabel("Teperature [C]")
 plt.title("Temperature profile")
-plt.axis([0,len(line),15,32])
+plt.axis([0,len(line),minTemperature,maxTemperature])
 plt.savefig("wholeTemperatureProfile.png", dpi=1000)
 plt.clf()
 
