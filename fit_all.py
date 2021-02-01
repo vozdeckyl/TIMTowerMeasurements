@@ -1,5 +1,6 @@
 import argparse
 import os
+import fitting
 
 def load_info(file_path):
     measurement_info = {}
@@ -68,6 +69,14 @@ def main(args):
         print("Invalid input_folder is invalid. Exiting.")
         exit()
 
+    if args.plots_dir:
+        if not os.path.isdir(args.plots_dir):
+            print("Invalid value for plots_dir: path does not exist.")
+            exit()
+        plots_dir = "{}/{}_{}.png".format(args.plots_dir.rstrip("/"),"{}","{}")
+    else:
+        plots_dir=""
+
     if (not args.measurement) and (not args.interval):
         print ("No measurement chosen. Choose an interval or a specific measurement.")
 
@@ -79,15 +88,17 @@ def main(args):
     if args.measurement:
         print("Measurement: {}".format(args.measurement))
 
-        info_file_path = "{}/A40M-{}_info.csv".format(args.input_folder, str(args.measurement).zfill(6))
+        info_file_path = "{}/A40M-{}_info.csv".format(args.input_folder.rstrip("/"), str(args.measurement).zfill(6))
+        box_file_path = "{}/A40M-{}_box.csv".format(args.input_folder.rstrip("/"), str(args.measurement).zfill(6))
 
         info = load_info(info_file_path)
         info["measurement"] = args.measurement
 
         ### CALL THE MEASUREMENT HERE
+        conductivity, err = fitting.main(box_file_path,plots_dir.format(args.measurement,"{}"))
 
-        info["conductivity"] = 1.0000
-        info["error"] = 0.0001
+        info["conductivity"] = conductivity
+        info["error"] = err
         
         info_list = [info]
 
@@ -104,12 +115,15 @@ def main(args):
         for n in range(args.interval[0],args.interval[1]+1):
             print(n)
             info_file_path = "{}/A40M-{}_info.csv".format(args.input_folder, str(n).zfill(6))
+            box_file_path = "{}/A40M-{}_box.csv".format(args.input_folder.rstrip("/"), str(n).zfill(6))
             info = load_info(info_file_path)
             info["measurement"] = n
             
             ## CALL THE MEASUREMENT HERE
-            info["conductivity"] = 1.0000
-            info["error"] = 0.0001
+            conductivity, err = fitting.main(box_file_path,plots_dir.format(n,"{}"))
+
+            info["conductivity"] = conductivity
+            info["error"] = err
             
             info_list.append(info)
         
@@ -121,7 +135,8 @@ if __name__ == "__main__":
     parser.add_argument("input_folder", type=str, help="Folder with all the _box.csv and _info.csv files.")
     parser.add_argument("-m", "--measurement", type=int, help="Choose a specific measurement.")
     parser.add_argument("-i", "--interval", type=int, nargs=2, metavar=("start", "stop") ,help="Choose an interval of measurement.")
-    parser.add_argument("-o", "--output", type=int, help="Name of the output csv file (out.csv is the default).")
+    parser.add_argument("-o", "--output", type=str, help="Name of the output csv file (out.csv is the default).")
+    parser.add_argument("-p", "--plots_dir", type=str, help="Output path for the plots. (no plots produced if undefined)")
 
     args = parser.parse_args()
     
