@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #import ROOT
 import csv
@@ -58,7 +58,7 @@ with open(sys.argv[1]) as csvfile:
     imgList.append(row)
 image = np.array(imgList)
 
-line = np.mean(image, axis=0)
+line = np.mean(image, axis=0)[:-10]
 
 first_derivative = np.gradient(line)
 second_derivative = np.gradient(first_derivative)
@@ -81,7 +81,7 @@ topTowerUpperBoundary = len(line) - 50
 bottomTowerLowerBoundary = 50
 bottomTowerUpperBoundary = bottomInterface - gap
 
-minTemperature = 15
+minTemperature = np.min(line) - 2
 maxTemperature = 2 + np.max(line)
 
 plt.vlines(sampleLowerBoundary,minTemperature,maxTemperature, colors = "r")
