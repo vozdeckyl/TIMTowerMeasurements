@@ -8,10 +8,10 @@ def load_info(file_path):
     measurement_info = {}
     with open(file_path) as f:
         for line in f:
-            variable = line.strip().split(",")[0]
-            value = ",".join(line.strip().split(",")[1:])
+            variable = (line.strip().split(",")[0]).strip()
+            value = (",".join(line.strip().split(",")[1:])).strip()
 
-            measurement_info[variable] = value.strip()
+            measurement_info[variable] = value
     
     return measurement_info
 
@@ -21,11 +21,12 @@ def print_measurements(output_file, info_list):
     
     with open(output_file,"a") as f:
         if is_new:
-            f.write("{} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \n".
+            f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".
             format(
             "#",
             "K_z",
             "err",
+            "Correction factor",
             "Sample ID",
             "Measurement",
             "Name",
@@ -42,11 +43,12 @@ def print_measurements(output_file, info_list):
             "Comments"
             ))
         for info in info_list:
-            f.write("{} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \t {} \n".
+            f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".
             format(
             info["measurement"],
             info["conductivity"],
             info["error"],
+            "1.000",
             info["Sample ID"],
             info["Measurement"],
             info["Name"],
@@ -96,7 +98,6 @@ def main(args):
         info = load_info(info_file_path)
         info["measurement"] = args.measurement
 
-        ### CALL THE MEASUREMENT HERE
         conductivity, err = fitting.main(box_file_path,plots_dir.format(args.measurement,"{}"))
 
         info["conductivity"] = conductivity
@@ -120,8 +121,7 @@ def main(args):
             box_file_path = "{}/A40M-{}_box.csv".format(args.input_folder.rstrip("/"), str(n).zfill(6))
             info = load_info(info_file_path)
             info["measurement"] = n
-            
-            ## CALL THE MEASUREMENT HERE
+
             conductivity, err = fitting.main(box_file_path,plots_dir.format(n,"{}"))
 
             info["conductivity"] = conductivity
