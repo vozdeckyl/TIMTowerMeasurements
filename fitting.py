@@ -42,6 +42,7 @@ def fit2polyGradient(dataArray, pivot, outputPlot=""):
 
     if outputPlot != "":
         plt.savefig(outputPlot)
+    plt.clf()
 
     gradient = coefs[1]
     gradientError = errors[1]
@@ -56,13 +57,12 @@ def main(file_path, plot_output_path, print_results=False):
         for row in reader:
             imgList.append(row)
     image = np.array(imgList)
-
+    
     line = np.mean(image, axis=0)[:-10]
 
     first_derivative = np.gradient(line)
     
-    plt.plot(line, "o", markersize=1)
-
+    
     gap = 5
     bottomInterface = np.argmax(first_derivative[0:int(len(first_derivative)/2)])
     topInterface = int(len(first_derivative)/2) + np.argmax(first_derivative[int(len(first_derivative)/2):])
@@ -81,6 +81,8 @@ def main(file_path, plot_output_path, print_results=False):
     maxTemperature = 2 + np.max(line)
 
     if plot_output_path != "":
+        plt.clf()
+        plt.plot(line, "o", markersize=1)
         plt.vlines(sampleLowerBoundary,minTemperature,maxTemperature, colors = "r")
         plt.vlines(sampleUpperBoundary,minTemperature,maxTemperature, colors = "r")
         plt.vlines(topTowerLowerBoundary,minTemperature,maxTemperature, colors = "b")
@@ -141,6 +143,8 @@ def main(file_path, plot_output_path, print_results=False):
         print("Relative error: \t {}%".format(100*heatConductivityError/heatConductivity))
 
         print("______________________________________________________________________")
+    
+    return (heatConductivity,heatConductivityError)
 
 if __name__ == "__main__":
     main(sys.argv[1],"{}.png",True)
