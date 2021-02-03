@@ -90,7 +90,7 @@ def main(file_path, plot_output_path, print_results=False):
         plt.vlines(bottomTowerLowerBoundary,minTemperature,maxTemperature, colors = "y")
         plt.vlines(bottomTowerUpperBoundary,minTemperature,maxTemperature, colors = "y")
         plt.xlabel("Pixels")
-        plt.ylabel("Teperature [C]")
+        plt.ylabel("Temperature [C]")
         plt.title("Temperature profile")
         plt.axis([0,len(line),minTemperature,maxTemperature])
         plt.savefig(plot_output_path.format("wholeTemperatureProfile"), dpi=1000)
