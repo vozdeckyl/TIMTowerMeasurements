@@ -111,7 +111,7 @@ def main(file_path, plot_output_path, print_results=False):
 
     heatConductivity = heatConductivityPb * (towerAverageGradient/gradientSample)
 
-    heatConductivityError = heatConductivity * math.sqrt((towerAverageGradientError/towerAverageGradient)**2 + (gradientErrorTopTower/gradientTopTower)**2)
+    heatConductivityError = heatConductivity * math.sqrt((towerAverageGradientError/towerAverageGradient)**2 + (gradientErrorSample/gradientSample)**2)
 
 
     if print_results:
